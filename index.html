@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>수빈이의 100시간 공부 기록판 💖</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts (Jua & Gowun Dodum for cute and legible look) -->
+    <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Jua&display=swap" rel="stylesheet">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        jua: ['"Jua"', 'sans-serif'],
+                        gowun: ['"Gowun Dodum"', 'sans-serif'],
+                    },
+                    colors: {
+                        pinky: {
+                            50: '#fff0f6',
+                            100: '#ffe3ec',
+                            200: '#ffc9c9',
+                            400: '#ff87b2',
+                            500: '#f76397',
+                            600: '#e64980',
+                        },
+                        lavender: {
+                            100: '#f3f0ff',
+                            400: '#b197fc',
+                            600: '#845ef7',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Gowun Dodum', sans-serif;
+            background: linear-gradient(135deg, #fff0f6 0%, #f3f0ff 50%, #e7f5ff 100%);
+            color: #2b2c34;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .title-font {
+            font-family: 'Jua', sans-serif;
+        }
+
+        /* 100 Stamp Board Grid */
+        .stamp-grid-compact {
+            display: grid;
+            grid-template-columns: repeat(10, minmax(0, 1fr));
+            gap: 4px;
+        }
+
+        @media (min-width: 640px) {
+            .stamp-grid-compact {
+                gap: 6px;
+            }
+        }
+
+        /* Pop animation for newly earned stamps */
+        @keyframes stampPop {
+            0% { transform: scale(0.3) rotate(-15deg); opacity: 0; }
+            70% { transform: scale(1.25) rotate(5deg); }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+
+        .animate-stamp-pop {
+            animation: stampPop 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        /* Pulse glow for milestone stamps */
+        .milestone-glow-50 {
+            box-shadow: 0 0 12px rgba(245, 158, 11, 0.6);
+            animation: pulse50 2s infinite alternate;
+        }
+
+        .milestone-glow-100 {
+            box-shadow: 0 0 15px rgba(168, 85, 247, 0.7);
+            animation: pulse100 1.8s infinite alternate;
+        }
+
+        @keyframes pulse50 {
+            0% { box-shadow: 0 0 5px rgba(245, 158, 11, 0.4); }
+            100% { box-shadow: 0 0 16px rgba(245, 158, 11, 0.9); }
+        }
+
+        @keyframes pulse100 {
+            0% { box-shadow: 0 0 6px rgba(168, 85, 247, 0.4); }
+            100% { box-shadow: 0 0 20px rgba(236, 72, 153, 0.9); }
+        }
+
+        /* Custom glass container */
+        .glass-box {
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.9);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between p-2 sm:p-4 max-w-2xl mx-auto">
+
+    <!-- Top Header & Student Greeting -->
+    <header class="glass-box rounded-2xl p-3 shadow-sm flex items-center justify-between mb-2">
+        <div class="flex items-center space-x-2.5">
+            <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-pinky-400 to-lavender-400 flex items-center justify-center text-white text-xl shadow-md">
+                🎀
+            </div>
+            <div>
+                <div class="flex items-center space-x-1.5">
+                    <h1 id="app-title-name" class="title-font text-lg sm:text-xl text-slate-800 tracking-wide">
+                        수빈이의 100시간 공부 기록판 💖
+                    </h1>
+                    <button onclick="openProfileModal()" class="text-slate-400 hover:text-pinky-500 text-xs p-1" title="이름 및 메시지 수정">
+                        <i class="fa-solid fa-pen"></i>
+                    </button>
+                </div>
+                <p id="subin-parent-msg" class="text-xs text-pinky-600 font-medium truncate max-w-[220px] sm:max-w-xs">
+                    "수빈아, 매일 2시간씩 차곡차곡 화이팅! ✨"
+                </p>
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-1.5">
+            <button onclick="openRewardsModal()" class="px-2.5 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-800 text-xs font-bold rounded-xl flex items-center space-x-1 transition shadow-xs">
+                <span>🎁</span>
+                <span class="hidden sm:inline">보상 설정</span>
+            </button>
+            <button onclick="openHistoryModal()" class="px-2.5 py-1.5 bg-indigo-100 hover:bg-indigo-200 text-indigo-800 text-xs font-bold rounded-xl flex items-center space-x-1 transition shadow-xs">
+                <span>📜</span>
+                <span class="hidden sm:inline">기록함</span>
+            </button>
+        </div>
+    </header>
+
+    <main class="space-y-2 flex-1 flex flex-col justify-center">
+
+        <!-- Today Progress & Goal Banner -->
+        <div class="glass-box rounded-2xl p-3 shadow-md bg-gradient-to-r from-pinky-50/80 via-white to-lavender-100/50">
+            <div class="flex items-center justify-between mb-1.5">
+                <div class="flex items-center space-x-2">
+                    <span class="text-lg">⭐</span>
+                    <span class="title-font text-sm sm:text-base text-slate-800">
+                        총 <span id="total-hours-text" class="text-pinky-600 font-black text-xl sm:text-2xl">0.0</span> / 100 시간 달성!
+                    </span>
+                </div>
+                <div class="text-right">
+                    <span class="text-xs text-slate-500">오늘 목표 (2시간)</span>
+                    <div class="title-font text-xs sm:text-sm text-indigo-600 font-bold">
+                        <span id="today-time-text">0분</span> / 120분
+                    </div>
+                </div>
+            </div>
+
+            <!-- Today's ProgressBar -->
+            <div class="w-full bg-slate-200/80 h-3.5 rounded-full overflow-hidden p-0.5 border border-white">
+                <div id="today-progress-fill" class="bg-gradient-to-r from-pinky-400 via-purple-400 to-indigo-400 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <!-- 100-Hour Praise Stamp Board -->
+        <div class="glass-box rounded-2xl p-3 shadow-lg relative border-2 border-pink-100">
+            <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center space-x-1.5">
+                    <span class="text-base">📝</span>
+                    <h2 class="title-font text-base text-slate-800">100시간 공부 기록 스탬프 판</h2>
+                </div>
+                <span class="text-[11px] font-bold text-pinky-600 bg-pinky-100 px-2 py-0.5 rounded-full">
+                    도장 1개 = 1시간
+                </span>
+            </div>
+
+            <!-- The 100 Stamp Grid -->
+            <div id="stamp-board-grid" class="stamp-grid-compact py-1">
+                <!-- Generated by JS -->
+            </div>
+
+            <!-- Milestones Quick Banner Below Grid -->
+            <div class="mt-3 grid grid-cols-2 gap-2 text-xs">
+                <div id="card-milestone-50" class="p-2 rounded-xl bg-amber-50 border border-amber-200 flex items-center space-x-2">
+                    <span class="text-xl">🎁</span>
+                    <div class="truncate">
+                        <div class="font-bold text-amber-800 text-[11px]">50시간 소소한 보상</div>
+                        <div id="text-reward-50" class="text-amber-900 font-semibold truncate text-[11px]">떡볶이 뷔페 가기!</div>
+                    </div>
+                </div>
+
+                <div id="card-milestone-100" class="p-2 rounded-xl bg-purple-50 border border-purple-200 flex items-center space-x-2">
+                    <span class="text-xl">👑</span>
+                    <div class="truncate">
+                        <div class="font-bold text-purple-800 text-[11px]">100시간 대형 보상</div>
+                        <div id="text-reward-100" class="text-purple-900 font-semibold truncate text-[11px]">갖고 싶던 운동화!</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Easy One-Touch Study Time Recording Controls -->
+        <div class="glass-box rounded-2xl p-3.5 shadow-md space-y-2">
+            <div class="text-center">
+                <span class="title-font text-xs sm:text-sm text-slate-600">
+                    👇 오늘 공부한 만큼 버튼을 꾹 누르면 스탬프가 찍혀요!
+                </span>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2">
+                <button onclick="quickAddMinutes(30)" class="py-3 px-2 bg-gradient-to-b from-sky-400 to-blue-500 hover:from-sky-500 hover:to-blue-600 text-white rounded-xl font-bold shadow-md active:scale-95 transition flex flex-col items-center justify-center space-y-0.5">
+                    <span class="title-font text-base sm:text-lg">+30분</span>
+                    <span class="text-[10px] text-sky-100 font-medium">✨ 살짝 집중</span>
+                </button>
+
+                <button onclick="quickAddMinutes(60)" class="py-3 px-2 bg-gradient-to-b from-pinky-400 to-pinky-600 hover:from-pinky-500 hover:to-pinky-700 text-white rounded-xl font-bold shadow-md active:scale-95 transition flex flex-col items-center justify-center space-y-0.5">
+                    <span class="title-font text-base sm:text-lg">+1시간</span>
+                    <span class="text-[10px] text-pinky-100 font-medium">🔥 완전 열공</span>
+                </button>
+
+                <button onclick="quickAddMinutes(120)" class="py-3 px-2 bg-gradient-to-b from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white rounded-xl font-bold shadow-md active:scale-95 transition flex flex-col items-center justify-center space-y-0.5">
+                    <span class="title-font text-base sm:text-lg">+2시간</span>
+                    <span class="text-[10px] text-amber-100 font-medium">👑 하루 목표 완성</span>
+                </button>
+            </div>
+
+            <!-- Custom Minutes or Timer Option Link -->
+            <div class="flex items-center justify-between text-xs pt-1 px-1 text-slate-500 font-medium">
+                <button onclick="openCustomTimeModal()" class="hover:text-pinky-600 flex items-center space-x-1">
+                    <i class="fa-solid fa-clock"></i>
+                    <span>직접 시간/날짜 지정하기</span>
+                </button>
+                <button onclick="openTimerModal()" class="hover:text-indigo-600 flex items-center space-x-1 font-bold text-indigo-600">
+                    <i class="fa-solid fa-stopwatch"></i>
+                    <span>⏱️ 스톱워치 타이머</span>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- 1. REWARD EDIT MODAL -->
+    <div id="modal-rewards" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between border-b pb-2">
+                <h3 class="title-font text-lg text-slate-800">🎁 수빈이의 보상 약속</h3>
+                <button onclick="closeModal('modal-rewards')" class="text-slate-400 text-lg">✕</button>
+            </div>
+
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-bold text-amber-700 mb-1">🎁 50시간 달성 시 보상</label>
+                    <input type="text" id="input-reward-50" placeholder="예: 떡볶이 뷔페 먹으러 가기!" class="w-full bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 font-bold text-slate-800">
+                </div>
+                <div>
+                    <label class="block font-bold text-purple-700 mb-1">👑 100시간 최종 완주 보상</label>
+                    <input type="text" id="input-reward-100" placeholder="예: 갖고 싶던 운동화나 놀이공원!" class="w-full bg-purple-50 border border-purple-200 rounded-xl px-3 py-2 font-bold text-slate-800">
+                </div>
+            </div>
+
+            <button onclick="saveRewardsSettings()" class="w-full py-2.5 bg-pinky-500 hover:bg-pinky-600 text-white title-font text-base rounded-2xl shadow-md">
+                약속 저장하기 ✨
+            </button>
+        </div>
+    </div>
+
+    <!-- 2. HISTORY MODAL -->
+    <div id="modal-history" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white w-full max-w-md rounded-3xl p-5 shadow-2xl space-y-3 max-h-[80vh] flex flex-col">
+            <div class="flex items-center justify-between border-b pb-2">
+                <h3 class="title-font text-lg text-slate-800">📜 공부 기록함</h3>
+                <button onclick="closeModal('modal-history')" class="text-slate-400 text-lg">✕</button>
+            </div>
+
+            <div id="history-items-container" class="space-y-2 overflow-y-auto flex-1 pr-1 text-xs">
+                <!-- Log entries here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. PROFILE MODAL -->
+    <div id="modal-profile" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white w-full max-w-xs rounded-3xl p-5 shadow-2xl space-y-3">
+            <h3 class="title-font text-base text-slate-800">🎀 프로필 설정</h3>
+            <div class="space-y-2 text-xs">
+                <div>
+                    <label class="block font-bold text-slate-600 mb-1">이름</label>
+                    <input type="text" id="input-student-name" class="w-full bg-slate-100 rounded-xl px-3 py-2 font-bold text-slate-800">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-600 mb-1">부모님 응원 메시지</label>
+                    <input type="text" id="input-parent-msg" class="w-full bg-slate-100 rounded-xl px-3 py-2 text-slate-800">
+                </div>
+            </div>
+            <div class="flex space-x-2 pt-2">
+                <button onclick="closeModal('modal-profile')" class="flex-1 py-2 bg-slate-100 text-slate-600 font-bold rounded-xl text-xs">취소</button>
+                <button onclick="saveProfileSettings()" class="flex-1 py-2 bg-pinky-500 text-white font-bold rounded-xl text-xs">저장</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. STAMP CLICK DETAIL MODAL -->
+    <div id="modal-stamp-detail" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl p-5 shadow-2xl max-w-xs w-full text-center space-y-3">
+            <div id="stamp-detail-icon" class="text-4xl animate-bounce">💮</div>
+            <h3 id="stamp-detail-title" class="title-font text-lg text-slate-800">1번째 스탬프</h3>
+            <div id="stamp-detail-desc" class="text-xs text-slate-600"></div>
+            <button onclick="closeModal('modal-stamp-detail')" class="w-full py-2 bg-slate-100 text-slate-700 font-bold rounded-xl text-xs">확인</button>
+        </div>
+    </div>
+
+    <!-- 5. TIMER MODAL -->
+    <div id="modal-timer" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white w-full max-w-xs rounded-3xl p-5 shadow-2xl space-y-4 text-center">
+            <h3 class="title-font text-lg text-slate-800">⏱️ 스마트 집중 타이머</h3>
+            <div id="timer-display" class="title-font text-4xl text-pinky-600 font-black tracking-wider py-2">
+                00:00:00
+            </div>
+            <div class="flex space-x-2">
+                <button id="btn-timer-toggle" onclick="toggleTimer()" class="flex-1 py-2.5 bg-indigo-600 text-white font-bold rounded-xl text-xs">시작</button>
+                <button id="btn-timer-save" onclick="saveTimerSession()" disabled class="flex-1 py-2.5 bg-emerald-500 disabled:opacity-40 text-white font-bold rounded-xl text-xs">저장</button>
+            </div>
+            <button onclick="closeModal('modal-timer')" class="text-xs text-slate-400">닫기</button>
+        </div>
+    </div>
+
+    <!-- 6. CUSTOM TIME MODAL -->
+    <div id="modal-custom-time" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white w-full max-w-xs rounded-3xl p-5 shadow-2xl space-y-3">
+            <h3 class="title-font text-base text-slate-800">⏱️ 공부 시간 세부 입력</h3>
+            <div class="space-y-2 text-xs">
+                <div>
+                    <label class="block font-bold text-slate-600 mb-1">공부한 시간 (분)</label>
+                    <input type="number" id="input-custom-mins" placeholder="예: 45" class="w-full bg-slate-100 rounded-xl px-3 py-2 font-bold text-slate-800">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-600 mb-1">날짜 선택</label>
+                    <input type="date" id="input-custom-date" class="w-full bg-slate-100 rounded-xl px-3 py-2 text-slate-800">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-600 mb-1">메모 (선택)</label>
+                    <input type="text" id="input-custom-note" placeholder="예: 수학 단원평가 공부" class="w-full bg-slate-100 rounded-xl px-3 py-2 text-slate-800">
+                </div>
+            </div>
+            <div class="flex space-x-2 pt-2">
+                <button onclick="closeModal('modal-custom-time')" class="flex-1 py-2 bg-slate-100 text-slate-600 font-bold rounded-xl text-xs">취소</button>
+                <button onclick="submitCustomTime()" class="flex-1 py-2 bg-pinky-500 text-white font-bold rounded-xl text-xs">기록 저장</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const STAMP_EMOJIS = ['🌸', '⭐', '🎀', '🐥', '💖', '🐰', '🍀', '🍬', '🎈', '✨'];
+        const STORAGE_KEY = 'subin_stamp_quest_v4';
+
+        const DEFAULT_STATE = {
+            studentName: '수빈',
+            parentMsg: '수빈아, 매일 2시간씩 차곡차곡 화이팅! ✨',
+            logs: [
+                { id: 'sample-1', minutes: 60, date: new Date().toISOString().split('T')[0], note: '개념 수학 풀이', timestamp: Date.now() - 3600000 },
+                { id: 'sample-2', minutes: 60, date: new Date().toISOString().split('T')[0], note: '독서책 감상', timestamp: Date.now() }
+            ],
+            rewards: {
+                r50: '떡볶이 뷔페 가기!',
+                r100: '갖고 싶던 운동화!'
+            }
+        };
+
+        let appState = { ...DEFAULT_STATE };
+
+        // Timer Variables
+        let timerInterval = null;
+        let timerSeconds = 0;
+        let isTimerRunning = false;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadState();
+            renderApp();
+            
+            const todayStr = new Date().toISOString().split('T')[0];
+            const dateInput = document.getElementById('input-custom-date');
+            if (dateInput) dateInput.value = todayStr;
+        });
+
+        function loadState() {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) {
+                    appState = JSON.parse(saved);
+                }
+            } catch (e) {
+                console.error("State load error", e);
+                appState = { ...DEFAULT_STATE };
+            }
+        }
+
+        function saveState() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+            } catch (e) {
+                console.error("State save error", e);
+            }
+        }
+
+        function renderApp() {
+            // Header Info
+            document.getElementById('app-title-name').textContent = `${appState.studentName}이의 공부시간 기록판 💖`;
+            document.getElementById('subin-parent-msg').textContent = appState.parentMsg || `"수빈아, 항상 네 노력을 응원해!"`;
+
+            // Total Hours
+            const totalMinutes = appState.logs.reduce((acc, log) => acc + log.minutes, 0);
+            const totalHours = totalMinutes / 60;
+            document.getElementById('total-hours-text').textContent = totalHours.toFixed(1);
+
+            // Today Progress
+            const todayStr = new Date().toISOString().split('T')[0];
+            const todayMins = appState.logs.filter(l => l.date === todayStr).reduce((acc, l) => acc + l.minutes, 0);
+            document.getElementById('today-time-text').textContent = `${todayMins}분`;
+
+            const todayPct = Math.min(100, Math.round((todayMins / 120) * 100));
+            document.getElementById('today-progress-fill').style.width = `${todayPct}%`;
+
+            // Rewards Teaser Text
+            document.getElementById('text-reward-50').textContent = appState.rewards.r50 || "50시간 보상 설정하기";
+            document.getElementById('text-reward-100').textContent = appState.rewards.r100 || "100시간 보상 설정하기";
+
+            renderStampBoard(totalHours);
+        }
+
+        function renderStampBoard(totalHours) {
+            const container = document.getElementById('stamp-board-grid');
+            if (!container) return;
+            container.innerHTML = '';
+
+            const completedHours = Math.floor(totalHours);
+
+            for (let h = 1; h <= 100; h++) {
+                const btn = document.createElement('button');
+                const isEarned = h <= completedHours;
+
+                let classes = "aspect-square rounded-xl flex items-center justify-center text-xs sm:text-sm font-bold transition transform active:scale-90 border ";
+                let content = "";
+
+                if (h === 50) {
+                    if (isEarned) {
+                        classes += "bg-amber-400 text-white border-amber-300 milestone-glow-50 animate-bounce";
+                        content = "🎁";
+                    } else {
+                        classes += "bg-amber-50 text-amber-600 border-dashed border-amber-300";
+                        content = "50h";
+                    }
+                } else if (h === 100) {
+                    if (isEarned) {
+                        classes += "bg-purple-600 text-white border-purple-300 milestone-glow-100 animate-bounce";
+                        content = "👑";
+                    } else {
+                        classes += "bg-purple-50 text-purple-600 border-dashed border-purple-300";
+                        content = "100h";
+                    }
+                } else {
+                    if (isEarned) {
+                        const emojiIndex = (h - 1) % STAMP_EMOJIS.length;
+                        classes += "bg-pinky-100 border-pinky-300 text-pinky-600 animate-stamp-pop shadow-xs";
+                        content = STAMP_EMOJIS[emojiIndex];
+                    } else {
+                        classes += "bg-slate-50/80 border-slate-200 text-slate-300 hover:bg-slate-100";
+                        content = `<span class="text-[10px] font-mono">${h}</span>`;
+                    }
+                }
+
+                btn.className = classes;
+                btn.innerHTML = content;
+                btn.onclick = () => showStampDetail(h, isEarned);
+
+                container.appendChild(btn);
+            }
+        }
+
+        function playChimeSound() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, ctx.currentTime); // C5
+                osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.15); // A5
+
+                gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                osc.start();
+                osc.stop(ctx.currentTime + 0.3);
+            } catch (e) {
+                // AudioContext fallback ignored
+            }
+        }
+
+        function quickAddMinutes(mins) {
+            const todayStr = new Date().toISOString().split('T')[0];
+            const prevTotalHours = appState.logs.reduce((a, b) => a + b.minutes, 0) / 60;
+
+            appState.logs.push({
+                id: Date.now().toString(),
+                minutes: mins,
+                date: todayStr,
+                note: `${mins}분 공부 기록`,
+                timestamp: Date.now()
+            });
+
+            saveState();
+            playChimeSound();
+            renderApp();
+
+            const newTotalHours = prevTotalHours + (mins / 60);
+
+            // Confetti animation
+            if (typeof confetti === 'function') {
+                confetti({ particleCount: 60, spread: 60, origin: { y: 0.7 } });
+            }
+
+            // Milestone celebrations
+            if (prevTotalHours < 50 && newTotalHours >= 50) {
+                setTimeout(() => {
+                    alert(`🎉 축하합니다! 수빈이가 50시간을 달성했어요!\n보상: ${appState.rewards.r50}`);
+                }, 300);
+            } else if (prevTotalHours < 100 && newTotalHours >= 100) {
+                setTimeout(() => {
+                    alert(`👑 대단해요! 100시간 최종 완주!\n최종 보상: ${appState.rewards.r100}`);
+                }, 300);
+            }
+        }
+
+        function showStampDetail(hourNum, isEarned) {
+            const title = document.getElementById('stamp-detail-title');
+            const desc = document.getElementById('stamp-detail-desc');
+            const icon = document.getElementById('stamp-detail-icon');
+
+            title.textContent = `${hourNum}번째 공부 도장`;
+
+            if (isEarned) {
+                icon.textContent = hourNum === 50 ? '🎁' : (hourNum === 100 ? '👑' : '🌸');
+                desc.innerHTML = `수빈이가 꾸준히 노력해서 찍은 <b>${hourNum}시간째</b> 자랑스러운 스탬프입니다! 💖`;
+            } else {
+                icon.textContent = '🔒';
+                desc.textContent = `아직 차례를 기다리고 있어요. 오늘 공부로 ${hourNum}번째 도장을 찍어보세요!`;
+            }
+
+            openModal('modal-stamp-detail');
+        }
+
+        function openCustomTimeModal() { openModal('modal-custom-time'); }
+        function submitCustomTime() {
+            const mins = parseInt(document.getElementById('input-custom-mins').value) || 0;
+            const dateStr = document.getElementById('input-custom-date').value;
+            const note = document.getElementById('input-custom-note').value.trim();
+
+            if (mins <= 0) return;
+
+            appState.logs.push({
+                id: Date.now().toString(),
+                minutes: mins,
+                date: dateStr || new Date().toISOString().split('T')[0],
+                note: note || `${mins}분 공부 기록`,
+                timestamp: Date.now()
+            });
+
+            saveState();
+            closeModal('modal-custom-time');
+            renderApp();
+            playChimeSound();
+        }
+
+        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+        function openRewardsModal() {
+            document.getElementById('input-reward-50').value = appState.rewards.r50 || '';
+            document.getElementById('input-reward-100').value = appState.rewards.r100 || '';
+            openModal('modal-rewards');
+        }
+
+        function saveRewardsSettings() {
+            appState.rewards.r50 = document.getElementById('input-reward-50').value.trim();
+            appState.rewards.r100 = document.getElementById('input-reward-100').value.trim();
+            saveState();
+            closeModal('modal-rewards');
+            renderApp();
+        }
+
+        function openProfileModal() {
+            document.getElementById('input-student-name').value = appState.studentName;
+            document.getElementById('input-parent-msg').value = appState.parentMsg;
+            openModal('modal-profile');
+        }
+
+        function saveProfileSettings() {
+            const name = document.getElementById('input-student-name').value.trim();
+            const msg = document.getElementById('input-parent-msg').value.trim();
+            if (name) appState.studentName = name;
+            appState.parentMsg = msg;
+            saveState();
+            closeModal('modal-profile');
+            renderApp();
+        }
+
+        function openHistoryModal() {
+            const container = document.getElementById('history-items-container');
+            container.innerHTML = '';
+
+            if (appState.logs.length === 0) {
+                container.innerHTML = `<div class="text-center py-6 text-slate-400">저장된 공부 기록이 없습니다.</div>`;
+            } else {
+                const sorted = [...appState.logs].sort((a,b) => b.timestamp - a.timestamp);
+                sorted.forEach(log => {
+                    const div = document.createElement('div');
+                    div.className = "p-2.5 bg-slate-50 border rounded-xl flex items-center justify-between";
+                    div.innerHTML = `
+                        <div>
+                            <div class="font-bold text-slate-800 text-xs">${log.date}</div>
+                            <div class="text-[11px] text-slate-500">${log.note}</div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="font-bold text-pinky-600 bg-pinky-50 px-2 py-0.5 rounded-md text-xs">${log.minutes}분</span>
+                            <button onclick="deleteLog('${log.id}')" class="text-slate-300 hover:text-red-500 text-xs p-1">✕</button>
+                        </div>
+                    `;
+                    container.appendChild(div);
+                });
+            }
+            openModal('modal-history');
+        }
+
+        function deleteLog(id) {
+            appState.logs = appState.logs.filter(l => l.id !== id);
+            saveState();
+            openHistoryModal();
+            renderApp();
+        }
+
+        // Timer Functions
+        function openTimerModal() { openModal('modal-timer'); }
+        function toggleTimer() {
+            const btn = document.getElementById('btn-timer-toggle');
+            if (isTimerRunning) {
+                clearInterval(timerInterval);
+                isTimerRunning = false;
+                btn.textContent = '재개';
+            } else {
+                isTimerRunning = true;
+                btn.textContent = '일시정지';
+                timerInterval = setInterval(() => {
+                    timerSeconds++;
+                    updateTimerClock();
+                    if (timerSeconds >= 60) {
+                        document.getElementById('btn-timer-save').disabled = false;
+                    }
+                }, 1000);
+            }
+        }
+
+        function updateTimerClock() {
+            const h = Math.floor(timerSeconds / 3600);
+            const m = Math.floor((timerSeconds % 3600) / 60);
+            const s = timerSeconds % 60;
+            const pad = (n) => String(n).padStart(2, '0');
+            document.getElementById('timer-display').textContent = `${pad(h)}:${pad(m)}:${pad(s)}`;
+        }
+
+        function saveTimerSession() {
+            const mins = Math.round(timerSeconds / 60);
+            if (mins < 1) return;
+
+            appState.logs.push({
+                id: Date.now().toString(),
+                minutes: mins,
+                date: new Date().toISOString().split('T')[0],
+                note: `${mins}분 집중 타이머 기록`,
+                timestamp: Date.now()
+            });
+
+            if (isTimerRunning) toggleTimer();
+            timerSeconds = 0;
+            updateTimerClock();
+            document.getElementById('btn-timer-save').disabled = true;
+
+            saveState();
+            closeModal('modal-timer');
+            renderApp();
+            playChimeSound();
+        }
+    </script>
+</body>
+</html>
